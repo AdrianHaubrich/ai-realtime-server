@@ -1,0 +1,93 @@
+import express from "express";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const app = express();
+app.use(express.json());
+
+const apiKey = process.env.OPENAI_API_KEY;
+const defaultModel = process.env.REALTIME_MODEL || "gpt-realtime";
+const port = process.env.PORT || 3001;
+
+app.get("/", (_req, res) => {
+  res.json({ status: "ok", message: "Realtime ephemeral token service" });
+});
+
+app.post("/token", async (req, res) => {
+  if (!apiKey) {
+    return res
+      .status(500)
+      .json({ error: "Missing OPENAI_API_KEY in environment" });
+  }
+
+  const { model, voice } = req.body ?? {};
+
+  // Build minimal session config for the Realtime API.
+  // Minimal session; voice optional. (Modalities are determined by the API defaults.)
+  const session = { type: "realtime", model: model || defaultModel };
+  if (voice) {
+    session.audio = { output: { voice } };
+  } else {
+    // Request text-only outputs when no voice is provided.
+    session.output_modalities = ["text"];
+  }
+
+  try {
+    console.log(
+      `[token] request model=${session.model ?? "<default>"} voice=${
+        session.audio?.output?.voice ?? "<none>"
+      } output_modalities=${session.output_modalities ?? "<default>"}`
+    );
+
+    const response = await fetch(
+      "https://api.openai.com/v1/realtime/client_secrets",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ session }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `[token] failed to mint client secret status=${response.status} body=${errorText}`
+      );
+      return res
+        .status(response.status)
+        .json({ error: "Failed to mint client secret", detail: errorText });
+    }
+
+    const data = await response.json();
+    const clientSecret =
+      data?.client_secret?.value ??
+      data?.client_secret ??
+      data?.value ??
+      null;
+
+    res.json({
+      clientSecret,
+      expiresAt: data?.expires_at ?? data?.client_secret?.expires_at,
+      raw: data,
+    });
+
+    console.log(
+      `[token] issued client_secret=${clientSecret ?? "<none>"} expires_at=${
+        data?.expires_at ?? data?.client_secret?.expires_at ?? "<unknown>"
+      } model=${session.model ?? "<default>"} voice=${
+        session.audio?.output?.voice ?? "<none>"
+      } output_modalities=${data?.session?.output_modalities ?? "<unknown>"}`
+    );
+  } catch (error) {
+    console.error("Token generation error:", error);
+    res.status(500).json({ error: "Unexpected error", detail: `${error}` });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Realtime token server listening on http://localhost:${port}`);
+});

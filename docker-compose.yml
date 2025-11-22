@@ -1,0 +1,12 @@
+services:
+  token-server:
+    build: .
+    image: realtime-server:local
+    env_file:
+      - .env
+    ports:
+      - "3001:3001"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PORT=3001
+    restart: unless-stopped
