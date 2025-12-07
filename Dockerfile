@@ -5,10 +5,14 @@ WORKDIR /app
 
 # Install deps first to leverage Docker layer caching
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
 # Copy source
 COPY . .
 
+RUN npm run build
+ENV NODE_ENV=production
+RUN npm prune --production
+
 EXPOSE 3001
-CMD ["npm", "start"]
+CMD ["node", "dist/server.js"]

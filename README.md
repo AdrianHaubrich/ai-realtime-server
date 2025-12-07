@@ -12,7 +12,7 @@ Minimal Express server that mints ephemeral client secrets for the OpenAI Realti
   ```
 
 ## Run
-- `npm start` (or `npm run dev` for watch mode). Defaults to `http://localhost:3001`.
+- `npm start` (or `npm run dev` for TypeScript watch mode). Defaults to `http://localhost:3001`.
 - Docker: `docker build -t ai-realtime-server .` then `docker run --rm -p 3001:3001 --env-file .env ai-realtime-server`.
 - Docker Compose (preferred): set `OPENAI_API_KEY=...` in `.env`, then `docker-compose up --build -d` to start; `docker-compose logs -f` to tail; `docker-compose down` to stop.
 
