@@ -1,7 +1,7 @@
 services:
   token-server:
     build: .
-    image: realtime-server:local
+    image: ai-realtime-server:local
     env_file:
       - .env
     ports:

@@ -1,5 +1,5 @@
 {
-  "name": "realtime-server",
+  "name": "ai-realtime-server",
   "version": "0.1.0",
   "type": "module",
   "description": "Minimal Express server to mint ephemeral OpenAI Realtime API client secrets for AIBotDemoApp.",

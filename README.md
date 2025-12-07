@@ -4,7 +4,7 @@ Minimal Express server that mints ephemeral client secrets for the OpenAI Realti
 
 ## Setup
 - Install Node 18+: `node -v` should be >= 18.
-- From the repo root: `cd realtime-server && npm install`.
+- From the repo root: `cd ai-realtime-server && npm install`.
 - Create `.env` (not committed) and set at least `OPENAI_API_KEY=...`. Example:
   ```
   OPENAI_API_KEY=sk-...
@@ -13,7 +13,7 @@ Minimal Express server that mints ephemeral client secrets for the OpenAI Realti
 
 ## Run
 - `npm start` (or `npm run dev` for watch mode). Defaults to `http://localhost:3001`.
-- Docker: `docker build -t realtime-server .` then `docker run --rm -p 3001:3001 --env-file .env realtime-server`.
+- Docker: `docker build -t ai-realtime-server .` then `docker run --rm -p 3001:3001 --env-file .env ai-realtime-server`.
 - Docker Compose (preferred): set `OPENAI_API_KEY=...` in `.env`, then `docker-compose up --build -d` to start; `docker-compose logs -f` to tail; `docker-compose down` to stop.
 
 ## API
