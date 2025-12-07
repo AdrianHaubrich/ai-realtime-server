@@ -21,7 +21,7 @@ app.post("/token", async (req, res) => {
       .json({ error: "Missing OPENAI_API_KEY in environment" });
   }
 
-  const { model, voice } = req.body ?? {};
+  const { model, voice, enableTranscription } = req.body ?? {};
 
   // Build minimal session config for the Realtime API.
   // Minimal session; voice optional. (Modalities are determined by the API defaults.)
@@ -31,6 +31,14 @@ app.post("/token", async (req, res) => {
   } else {
     // Request text-only outputs when no voice is provided.
     session.output_modalities = ["text"];
+  }
+
+  if (enableTranscription) {
+    session.audio = session.audio || {};
+    session.audio.input = {
+      ...(session.audio.input || {}),
+      transcription: { model: "gpt-4o-mini-transcribe" },
+    };
   }
 
   try {
