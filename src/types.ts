@@ -15,6 +15,13 @@ export type SessionState = {
   profile: UserProfile;
   callId?: string | null;
   transcript: TranscriptEntry[];
+  toolConfigCallId?: string | null;
+  toolCalls?: Record<
+    string,
+    { name: string; arguments?: string; itemId?: string; handled?: boolean }
+  >;
+  isExtracting?: boolean;
+  lastExtractedAt?: number;
 };
 
 export type OutputModality = "text" | string;

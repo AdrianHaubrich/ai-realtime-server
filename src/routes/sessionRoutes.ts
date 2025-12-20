@@ -60,6 +60,10 @@ router.post(
         profile: { first_name: null, last_name: null, income: null } as UserProfile,
         callId: callId ?? null,
         transcript: [],
+        toolConfigCallId: null,
+        toolCalls: {},
+        isExtracting: false,
+        lastExtractedAt: undefined,
       };
       sessions.set(sessionId, state);
 

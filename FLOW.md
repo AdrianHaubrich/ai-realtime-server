@@ -1,6 +1,6 @@
 # Realtime Session Flow (with Sideband Transcript Capture)
 
-This diagram shows the end-to-end setup: the frontend creates a session, negotiates WebRTC (getting `call_id`), the backend attaches a sideband WS using that `call_id` and client secret, and the server captures transcript for extraction/rehydration.
+This diagram shows the end-to-end setup: the frontend creates a session, negotiates WebRTC (getting `call_id`), the backend attaches a sideband WS using that `call_id` and client secret, registers the extraction tool, and the server captures transcript for extraction/rehydration.
 
 ```mermaid
 sequenceDiagram
@@ -21,6 +21,7 @@ sequenceDiagram
     Frontend->>Backend: POST /session/call { sessionId, callId }
 
     Backend->>OpenAI: WS connect wss://api.openai.com/v1/realtime?call_id=... (Bearer clientSecret)
+    Sideband->>OpenAI: session.update (register extract_profile tool)
     OpenAI-->>Sideband: conversation events (user/assistant text)
     Sideband->>Backend: update session transcript (user/assistant)
 
@@ -29,17 +30,25 @@ sequenceDiagram
     OpenAI-->>Sideband: Mirrored events (user/assistant)
     Sideband->>Backend: Keep transcript authoritative
 
-    User->>Frontend: Trigger extraction
+    User->>Frontend: Trigger extraction (manual)
     Frontend->>Backend: POST /extract-profile { sessionId }
     Backend->>OpenAI: Responses API call to extract profile (using transcript)
     Backend-->>Frontend: { profile, instructions }
-    Note over Frontend: Applies instructions to its Realtime session
+    Backend->>OpenAI: session.update (push instructions)
+
+    User->>Frontend: Provide profile detail
+    OpenAI-->>Sideband: response.function_call_arguments.* (extract_profile)
+    Sideband->>Backend: run extraction, store profile
+    Sideband->>OpenAI: conversation.item.create (function_call_output)
+    Sideband->>OpenAI: session.update (push instructions)
+    Sideband->>OpenAI: response.create (continue assistant reply)
 ```
 
 Notes:
 - The frontend handles the WebRTC SDP exchange and surfaces `call_id` to the backend.
 - The backend sideband WS uses the client secret to join the same Realtime session and builds the canonical transcript (user + assistant).
-- Extraction and rehydration use the backend transcript; the frontend applies returned instructions after renew.
+- Manual extraction uses the backend transcript and pushes updated instructions immediately.
+- Automatic extraction is tool-driven and throttled by `EXTRACTION_COOLDOWN_SECONDS`.
 
 ## Renew Flow (Sideband + Instructions)
 

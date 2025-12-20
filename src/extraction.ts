@@ -78,6 +78,7 @@ Guidelines:
 - Treat USER_PROFILE as the source of truth for the user's personal details.
 - Refer to the user by their first name when appropriate.
 - Never read the JSON literally; speak naturally in full sentences.
+- Always check USER_PROFILE before asking about missing or already-provided data.
 - If any field is null (especially income, monthly), politely ask the user once to confirm or provide it.
 - Do not repeatedly ask for the same missing field unless the user brings it up again.
 `.trim();
