@@ -76,6 +76,33 @@ export function startSidebandConnection(callId: string, state: SessionState) {
   sidebandSockets.set(state.sessionId, { ws, retries: existingRecord?.retries ?? 0 });
 }
 
+export function sendSessionInstructions(sessionId: string, instructions: string) {
+  const record = sidebandSockets.get(sessionId);
+  const ws = record?.ws;
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.warn(`[sideband] cannot send session.update; socket not open for session ${sessionId}`);
+    return;
+  }
+
+  const payload = {
+    type: "session.update",
+    session: {
+      type: "realtime",
+      instructions,
+    },
+  };
+
+  console.log(
+    `[sideband] session.update -> session=${sessionId} instructions_length=${instructions.length}`
+  );
+
+  ws.send(JSON.stringify(payload), (err) => {
+    if (err) {
+      console.error(`[sideband] session.update failed for session ${sessionId}`, err);
+    }
+  });
+}
+
 function handleSidebandEvent(event: any, sessionId: string) {
   const state = sessions.get(sessionId);
   if (!state) return;
@@ -148,6 +175,10 @@ function handleSidebandEvent(event: any, sessionId: string) {
       if (typeof transcript === "string" && transcript.trim().length > 0) {
         addTranscriptEntry(state, { role: "assistant", text: transcript });
       }
+      break;
+    }
+    case "session.updated": {
+      console.log(`[sideband] session.updated received for session ${sessionId}`);
       break;
     }
     default: {

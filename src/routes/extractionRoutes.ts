@@ -1,6 +1,7 @@
 import { Router, Request, Response as ExpressResponse } from "express";
 import { extractProfile, buildInstructionsFromProfile } from "../extraction.js";
 import { sessions } from "../services/sessionStore.js";
+import { sendSessionInstructions } from "../services/sideband.js";
 import { ExtractProfileRequestBody } from "../types.js";
 
 const router = Router();
@@ -39,6 +40,8 @@ router.post(
     console.log("[extract-profile] updated profile", extracted);
 
     sessions.set(sessionId, state);
+
+    sendSessionInstructions(sessionId, instructions);
 
     res.json({
       profile: extracted,
